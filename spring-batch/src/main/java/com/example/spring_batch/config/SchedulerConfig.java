@@ -23,7 +23,7 @@ public class SchedulerConfig {
     private final JobLauncher jobLauncher;
     private final Job job;
 
-    public SchedulerConfig(JobLauncher jobLauncher,Job job) {
+    public SchedulerConfig(JobLauncher jobLauncher,@Qualifier("exportDbToCsvJob") Job job) {
         this.jobLauncher = jobLauncher;
         this.job = job;
     }

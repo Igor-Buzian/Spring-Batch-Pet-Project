@@ -1,4 +1,3 @@
-/*
 package com.example.spring_batch.config;
 
 import com.example.spring_batch.entity.User;
@@ -61,9 +60,9 @@ public class CsvToDbBatchConfig {
 
     @Bean
     @StepScope
-    public JdbcCursorItemReader<User> reader(DataSource dataSource) {
+    public JdbcCursorItemReader<User> csvReader(DataSource dataSource) {
         return new JdbcCursorItemReaderBuilder<User>()
-                .name("userDbReader")
+                .name("csvReader")
                 .dataSource(dataSource)
                 .sql("SELECT id, first_name AS firstName, last_name AS lastName FROM users")
                 .rowMapper(new BeanPropertyRowMapper<>(User.class))
@@ -103,7 +102,7 @@ public class CsvToDbBatchConfig {
     public Step stepCsvToDb(@Qualifier("fileItemWriter") ItemWriter<User> writer, DataSource dataSource) {
         return new StepBuilder("stepCsvToDb", jobRepository)
                 .<User, User>chunk(chunkSize, transactionManager)
-                .reader(reader(dataSource))
+                .reader(csvReader(dataSource))
                 .processor(csvToDbProcessor())
                 .writer(writer)
                 .build();
@@ -116,4 +115,3 @@ public class CsvToDbBatchConfig {
                 .build();
     }
 }
-*/

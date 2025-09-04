@@ -1,4 +1,3 @@
-/*
 package com.example.spring_batch.config;
 
 import com.example.spring_batch.entity.User;
@@ -73,6 +72,7 @@ public class DbToCsvBatchConfig {
                 .saveState(false)
                 .build();
     }
+
     @Bean
     public JdbcBatchItemWriter<User> databaseItemWriter(DataSource dataSource) throws IOException {
         Resource userMergeSql = resourceLoader.getResource(classpathUserMerge);
@@ -84,6 +84,7 @@ public class DbToCsvBatchConfig {
                 .dataSource(dataSource)
                 .build();
     }
+
     @Bean
     public Step stepDbToFile(@Qualifier("databaseItemWriter") ItemWriter<User> writer, DataSource dataSource) {
         return new StepBuilder("stepDbToFile", jobRepository)
@@ -101,4 +102,3 @@ public class DbToCsvBatchConfig {
                 .build();
     }
 }
-*/

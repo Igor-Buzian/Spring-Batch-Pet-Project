@@ -1,1 +1,1 @@
-SELECT id, firstName, lastName FROM users
+SELECT id, first_name AS firstName, last_name AS lastName FROM users
