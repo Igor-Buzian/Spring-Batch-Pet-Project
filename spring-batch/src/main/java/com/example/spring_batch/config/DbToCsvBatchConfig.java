@@ -86,7 +86,7 @@ public class DbToCsvBatchConfig {
     }
 
     @Bean
-    public Step stepDbToFile(@Qualifier("databaseItemWriter") ItemWriter<User> writer, DataSource dataSource) {
+    public Step stepDbToFile(@Qualifier("databaseItemWriter") ItemWriter<User> writer) {
         return new StepBuilder("stepDbToFile", jobRepository)
                 .<User, User>chunk(chunkSize, transactionManager)
                 .reader(dbReader())

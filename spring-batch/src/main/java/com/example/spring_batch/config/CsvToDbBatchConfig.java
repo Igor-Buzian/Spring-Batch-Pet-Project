@@ -49,22 +49,25 @@ public class CsvToDbBatchConfig {
     @Value("${spring.batch.userField}")
     private String[] names;
 
-    @Value("${spring.batch.write.name}")
-    private String writerNameComponent;
-
     @Value("${spring.batch.classPathOutput}")
     private String classPathOutput;
 
-    @Value("${spring.batch.sql.classpathUserMerge}")
-    private String classpathUserMerge;
+    @Value("classpath:sql/user-select.sql")
+    private String classpathUserSelect;
+
+    @Value("${spring.time.format}")
+    private  String TimeFormat;
 
     @Bean
     @StepScope
-    public JdbcCursorItemReader<User> csvReader(DataSource dataSource) {
+    public JdbcCursorItemReader<User> csvReader(DataSource dataSource) throws IOException {
+        Resource selectUsers = resourceLoader.getResource(classpathUserSelect);
+        String sqlQuery = StreamUtils.copyToString(selectUsers.getInputStream(), StandardCharsets.UTF_8);
+
         return new JdbcCursorItemReaderBuilder<User>()
                 .name("csvReader")
                 .dataSource(dataSource)
-                .sql("SELECT id, first_name AS firstName, last_name AS lastName FROM users")
+                .sql(sqlQuery)
                 .rowMapper(new BeanPropertyRowMapper<>(User.class))
                 .build();
     }
@@ -79,13 +82,14 @@ public class CsvToDbBatchConfig {
     public FlatFileItemWriter<User> fileItemWriter() {
         String outputFileName = generateOutputFileName();
         File outputFile = new File(outputFileName);
+        File outputDir = outputFile.getParentFile();
 
-        if (!outputFile.exists()) {
-            outputFile.mkdirs();
+        if (outputDir != null && !outputDir.exists()) {
+            outputDir.mkdirs();
         }
 
         return new FlatFileItemWriterBuilder<User>()
-                .name(writerNameComponent)
+                .name("fileWriterNameComponent")
                 .resource(new FileSystemResource(outputFile))
                 .delimited()
                 .names(names)
@@ -94,12 +98,13 @@ public class CsvToDbBatchConfig {
     }
 
     private String generateOutputFileName() {
-        String date = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss.SSS").format(new Date());
+        String date = new SimpleDateFormat(TimeFormat).format(new Date());
         return classPathOutput + "/users-" + date + ".csv";
     }
 
+
     @Bean
-    public Step stepCsvToDb(@Qualifier("fileItemWriter") ItemWriter<User> writer, DataSource dataSource) {
+    public Step stepCsvToDb(@Qualifier("fileItemWriter") ItemWriter<User> writer, DataSource dataSource) throws IOException {
         return new StepBuilder("stepCsvToDb", jobRepository)
                 .<User, User>chunk(chunkSize, transactionManager)
                 .reader(csvReader(dataSource))
