@@ -1,5 +1,7 @@
-package com.example.spring_batch.config;
+package com.example.spring_batch.batch.config;
 
+import com.example.spring_batch.batch.interfaces.ScheduledJob;
+import com.example.spring_batch.batch.interfaces.StartupJob;
 import com.example.spring_batch.entity.User;
 import com.example.spring_batch.processes.UserItemProcessor;
 import lombok.RequiredArgsConstructor;
@@ -59,7 +61,6 @@ public class CsvToDbBatchConfig {
     private  String TimeFormat;
 
     @Bean
-    @StepScope
     public JdbcCursorItemReader<User> csvReader(DataSource dataSource) throws IOException {
         Resource selectUsers = resourceLoader.getResource(classpathUserSelect);
         String sqlQuery = StreamUtils.copyToString(selectUsers.getInputStream(), StandardCharsets.UTF_8);
@@ -114,6 +115,7 @@ public class CsvToDbBatchConfig {
     }
 
     @Bean
+    @ScheduledJob
     public Job exportDbToCsvJob(Step stepCsvToDb) {
         return new JobBuilder("exportDbToCsvJob", jobRepository)
                 .start(stepCsvToDb)

@@ -1,5 +1,6 @@
-package com.example.spring_batch.config;
+package com.example.spring_batch.batch.config;
 
+import com.example.spring_batch.batch.interfaces.StartupJob;
 import com.example.spring_batch.entity.User;
 import com.example.spring_batch.processes.UserItemProcessor;
 import lombok.RequiredArgsConstructor;
@@ -96,6 +97,7 @@ public class DbToCsvBatchConfig {
     }
 
     @Bean
+    @StartupJob
     public Job importCsvToDbJob(Step stepDbToFile) {
         return new JobBuilder("importCsvToDbJob", jobRepository)
                 .start(stepDbToFile)
