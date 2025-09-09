@@ -1,6 +1,6 @@
 # Spring Batch CSV to DB and DB to CSV
 
-[English](#english-version) | [Русский](#русская-версия)
+[English version](#english-version) | [Русская версия](#русская-версия)
 
 ---
 
@@ -36,7 +36,8 @@ Output CSV files will appear in the `csv-update-data` folder.
 
 [English Version](#spring-batch-csv-to-db-and-db-to-csv)
 
-# Spring Batch CSV to DB и DB to CSV
+# Spring Batch CSV to DB и DB to CSV 
+[Русская версия](#русская-версия)
 
 Проект на Spring Batch для импорта данных из CSV в базу данных и экспорта данных из базы в CSV. Используется H2 база данных в памяти.
 
