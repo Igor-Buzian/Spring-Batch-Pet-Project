@@ -36,7 +36,7 @@ Output CSV files will appear in the `csv-update-data` folder.
 
 ---
 
-## Русская версия {#russian-version}
+## Russain Version
 
 Проект на Spring Batch для импорта данных из CSV в базу данных и экспорта данных из базы в CSV. Используется H2 база данных в памяти.
 
