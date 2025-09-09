@@ -4,9 +4,11 @@
 
 ---
 
+## English Version {#english-version}
+
 This project uses Spring Batch to import data from CSV into a database and export data from the database into CSV files. It uses an in-memory H2 database.
 
-## Description
+### Description
 
 - Import data from the CSV file `csv-input-data/users.csv` into the `users` table.
 - Export data from the `users` table to CSV files in the `csv-update-data` directory.
@@ -15,7 +17,7 @@ This project uses Spring Batch to import data from CSV into a database and expor
 - A scheduler triggers batch jobs every 10 seconds.
 - Configuration is done through XML and Java configs.
 
-## How to run
+### How to run
 
 1. Clone the repository and open the project in your IDE.
 2. Make sure the necessary dependencies (spring-context, spring-batch, h2) are on the classpath.
@@ -25,7 +27,7 @@ This project uses Spring Batch to import data from CSV into a database and expor
 
 Output CSV files will appear in the `csv-update-data` folder.
 
-## Important settings
+### Important settings
 
 - The time format for filenames and batch logic is set by `spring.time.format` — `yyyy-MM-dd_HH-mm-ss.SSS`.
 - Input CSV path — `csv-input-data/users.csv`.
@@ -34,14 +36,11 @@ Output CSV files will appear in the `csv-update-data` folder.
 
 ---
 
-
-# Spring Batch CSV to DB and DB to CSV 
-## [Русская версия](#russian-version)
-
+## Русская версия {#russian-version}
 
 Проект на Spring Batch для импорта данных из CSV в базу данных и экспорта данных из базы в CSV. Используется H2 база данных в памяти.
 
-## Описание
+### Описание
 
 - Импорт данных из CSV файла `csv-input-data/users.csv` в таблицу `users`.
 - Экспорт данных из таблицы `users` в CSV файлы в директорию `csv-update-data`.
@@ -50,7 +49,7 @@ Output CSV files will appear in the `csv-update-data` folder.
 - Планировщик запускает batch-задачи каждые 10 секунд.
 - Конфигурация через XML и Java-конфиги.
 
-## Как запустить
+### Как запустить
 
 1. Склонируйте репозиторий и откройте проект в IDE.
 2. Убедитесь, что в classpath добавлены необходимые зависимости, включая `spring-context`, `spring-batch`, `h2`.
@@ -60,7 +59,7 @@ Output CSV files will appear in the `csv-update-data` folder.
 
 Выходные CSV файлы появятся в папке `csv-update-data`.
 
-## Важные настройки
+### Важные настройки
 
 - Формат времени для имен файлов и логики batch задан в `spring.time.format` — `yyyy-MM-dd_HH-mm-ss.SSS`.
 - Путь к входному CSV — `csv-input-data/users.csv`.
