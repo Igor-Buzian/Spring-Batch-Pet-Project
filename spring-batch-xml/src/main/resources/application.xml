@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:util="http://www.springframework.org/schema/util"
+       xmlns:task="http://www.springframework.org/schema/task"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="
+           http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+           http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd
+           http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd
+           http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+    <context:component-scan base-package="batch"/>
+    <context:annotation-config/>
+
+    <!-- for support @Scheduled -->
+    <task:annotation-driven/>
+
+    <!-- registration of batch scope -->
+    <bean class="org.springframework.batch.core.scope.StepScope"/>
+    <bean class="org.springframework.batch.core.scope.JobScope"/>
+
+    <util:properties id="appProperties">
+        <prop key="spring.sql.init.mode">always</prop>
+        <prop key="spring.time.format">yyyy-MM-dd_HH-mm-ss.SSS</prop>
+        <prop key="spring.batch.job.enabled">false</prop>
+        <prop key="spring.batch.job.names">exportDbToCsvJob</prop>
+        <prop key="spring.batch.userField">id,firstName,lastName</prop>
+        <prop key="spring.task.scheduling.enabled">true</prop>
+        <prop key="spring.batch.read.name">userItemReader</prop>
+        <prop key="spring.batch.classPathInput">csv-input-data/users.csv</prop>
+        <prop key="spring.batch.classPathOutput">csv-update-data</prop>
+        <prop key="spring.batch.sql.classpathUserMerge">classpath:sql/user_merge.sql</prop>
+        <prop key="spring.batch.sql.classpathUserSelect">classpath:sql/user-select.sql</prop>
+        <prop key="spring.time.fixedRate">10000</prop>
+    </util:properties>
+
+
+    <!-- application name -->
+    <bean id="applicationName" class="java.lang.String">
+        <constructor-arg value="spring-batch"/>
+    </bean>
+
+    <!-- H2 Datasource -->
+    <bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+        <property name="driverClassName" value="org.h2.Driver"/>
+        <property name="url" value="jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1"/>
+        <property name="username" value="sa"/>
+        <property name="password" value=""/>
+    </bean>
+
+    <!-- ResourceLoader bean -->
+    <bean id="resourceLoader" class="org.springframework.core.io.DefaultResourceLoader"/>
+
+    <!-- Transaction Manager -->
+    <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
+
+    <!-- Job Repository -->
+    <bean id="jobRepository" class="org.springframework.batch.core.repository.support.JobRepositoryFactoryBean">
+        <property name="dataSource" ref="dataSource"/>
+        <property name="transactionManager" ref="transactionManager"/>
+        <property name="databaseType" value="H2"/>
+    </bean>
+
+    <!-- Job Launcher -->
+    <bean id="jobLauncher" class="org.springframework.batch.core.launch.support.SimpleJobLauncher">
+        <property name="jobRepository" ref="jobRepository"/>
+    </bean>
+
+    <!-- DataSource Initializer -->
+    <bean id="dataSourceInitializer" class="org.springframework.jdbc.datasource.init.DataSourceInitializer" init-method="afterPropertiesSet">
+        <property name="dataSource" ref="dataSource"/>
+        <property name="databasePopulator">
+            <bean class="org.springframework.jdbc.datasource.init.ResourceDatabasePopulator">
+                <property name="scripts">
+                    <list>
+                        <value>classpath:org/springframework/batch/core/schema-h2.sql</value>
+                        <value>classpath:sql/schema-h2.sql</value>
+                    </list>
+                </property>
+            </bean>
+        </property>
+    </bean>
+
+
+
+    <!-- DbToCsvBatchConfig bean -->
+    <bean id="dbToCsvBatchConfig" class="batch.config.DbToCsvBatchConfig">
+        <!-- constructor with required field -->
+        <constructor-arg ref="jobRepository"/>
+        <constructor-arg ref="transactionManager"/>
+        <constructor-arg ref="resourceLoader"/>
+
+        <!-- properties -->
+        <property name="names" value="#{T(org.springframework.util.StringUtils).commaDelimitedListToStringArray(appProperties['spring.batch.userField'])}"/>
+        <property name="readerNameComponent" value="#{appProperties['spring.batch.read.name']}"/>
+        <property name="classPathResource" value="#{appProperties['spring.batch.classPathInput']}"/>
+        <property name="classpathUserMerge" value="#{appProperties['spring.batch.sql.classpathUserMerge']}"/>
+    </bean>
+
+    <bean id="csvToDbBatchConfig" class="batch.config.CsvToDbBatchConfig">
+        <constructor-arg ref="jobRepository"/>
+        <constructor-arg ref="transactionManager"/>
+        <constructor-arg ref="resourceLoader"/>
+        <property name="names" value="#{T(org.springframework.util.StringUtils).commaDelimitedListToStringArray(appProperties['spring.batch.userField'])}"/>
+        <property name="classPathOutput" value="#{appProperties['spring.batch.classPathOutput']}"/>
+        <property name="classpathUserSelect" value="classpath:sql/user-select.sql"/>
+        <property name="timeFormat" value="#{appProperties['spring.time.format']}"/>
+    </bean>
+
+    <!-- Scheduler Runner -->
+    <bean id="schedulerRunner" class="batch.runner.SchedulerRunner">
+        <constructor-arg ref="jobLauncher"/>
+        <property name="timeFormat" value="#{appProperties['spring.time.format']}"/>
+        <property name="enabled" value="#{appProperties['spring.task.scheduling.enabled']}"/>
+    </bean>
+
+    <bean id="oneTimeJobRunner" class="batch.runner.OneTimeJobRunner">
+        <constructor-arg ref="jobLauncher"/>
+    </bean>
+
+
+
+    <!-- Time format -->
+    <bean id="timeFormat" class="java.text.SimpleDateFormat">
+        <constructor-arg value="yyyy-MM-dd_HH-mm-ss.SSS"/>
+    </bean>
+
+    <!-- chunk size -->
+    <bean id="chunkSize" class="java.lang.Integer">
+        <constructor-arg value="1"/>
+    </bean>
+
+    <!-- CSV input resource -->
+    <bean id="inputCsvResource" class="org.springframework.core.io.ClassPathResource">
+        <constructor-arg value="csv-input-data/users.csv"/>
+    </bean>
+
+    <!-- output CSV directory -->
+    <bean id="outputCsvDirectory" class="java.lang.String">
+        <constructor-arg value="csv-update-data"/>
+    </bean>
+
+    <!-- SQL scripts -->
+    <bean id="userMergeSql" class="org.springframework.core.io.ClassPathResource">
+        <constructor-arg value="sql/user_merge.sql"/>
+    </bean>
+
+    <bean id="userSelectSql" class="org.springframework.core.io.ClassPathResource">
+        <constructor-arg value="sql/user-select.sql"/>
+    </bean>
+
+    <!-- Schedule (every 10 sec) -->
+    <task:scheduled-tasks>
+        <task:scheduled ref="schedulerRunner" method="runScheduledJobs" fixed-rate="10000"/>
+    </task:scheduled-tasks>
+
+</beans>
